@@ -144,3 +144,6 @@ SESSION_COOKIE_SECURE = False  # Set to True only if using HTTPS in production
 
 CSRF_COOKIE_SAMESITE = 'None'
 CSRF_COOKIE_SECURE = False
+CSRF_TRUSTED_ORIGINS = [
+    "https://task-manager-01-21kgeqcmp-mahamadsadnadaf-devs-projects.vercel.app",
+]
