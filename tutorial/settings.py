@@ -140,10 +140,10 @@ CORS_ALLOW_CREDENTIALS = True
 
 # ⚡ THE SECRET SAUCE: Allows cookie passing across local server ports
 SESSION_COOKIE_SAMESITE = 'None'
-SESSION_COOKIE_SECURE = False  # Set to True only if using HTTPS in production
+SESSION_COOKIE_SECURE = True  # Set to True only if using HTTPS in production
 
 CSRF_COOKIE_SAMESITE = 'None'
-CSRF_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = True
 CSRF_TRUSTED_ORIGINS = [
     "https://task-manager-01-21kgeqcmp-mahamadsadnadaf-devs-projects.vercel.app",
 ]
