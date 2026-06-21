@@ -1,0 +1,155 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Bare Minimum Task Frontend</title>
+    <link rel="stylesheet" href="static 'style.css'">
+</head>
+<body>
+
+    <h1>Pure HTML Task Manager</h1>
+
+    <h3>Create a Task</h3>
+    <form id="taskForm" onsubmit="createTask(event)">
+        <input type="text" id="taskTitle" placeholder="Task Title (Required)" required>
+        <br><br>
+        <textarea id="taskDesc" placeholder="Task Description (Optional)"></textarea>
+        <br><br>
+        <button type="submit">Submit to Django</button>
+    </form>
+
+    <hr>
+
+    <button onclick="loadTasks()">Manually Refresh List</button>
+    
+    <h3>Your Tasks from Django:</h3>
+    <div id="tasksContainer"></div>
+
+
+    <script>
+        const API_URL = 'https://task-manager-oqe7.onrender.com/tasks/';
+
+        function getCsrfToken() {
+            const match = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/);
+            return match ? match[1] : '';
+        }
+
+        // 📥 1. READ (GET ALL TASKS)
+        async function loadTasks() {
+            const container = document.getElementById('tasksContainer');
+            container.innerHTML = "Loading tasks from server...";
+
+            try {
+                const response = await fetch(API_URL);
+                if (!response.ok) throw new Error(`Server error: ${response.status}`);
+
+                const data = await response.json();
+                const tasks = Array.isArray(data) ? data : (data.results || []);
+
+                if (tasks.length === 0) {
+                    container.innerHTML = "No tasks found in your Django database.";
+                    return;
+                }
+
+                // Render loop layout containing BOTH Update (Toggle) and Delete buttons
+                container.innerHTML = tasks.map(task => `
+                    <div style="border: 1px solid black; margin: 10px 0; padding: 10px;">
+                        <strong>Title:</strong> ${task.title} <br>
+                        <strong>Desc:</strong> ${task.description || 'None'} <br>
+                        <strong>Status:</strong> ${task.status ? "✅ Done" : "❌ Pending"} <br>
+                        <br>
+                        
+                        <button onclick="toggleTask(${task.id})">
+                            ${task.status ? "Mark Pending" : "Mark Done"}
+                        </button>
+
+                        <button onclick="deleteTask(${task.id})" style="color: red; margin-left: 15px;">
+                            Delete Task
+                        </button>
+                    </div>
+                `).join('');
+
+            } catch (err) {
+                container.innerHTML = `<span style="color: red;">Error: ${err.message}</span>`;
+            }
+        }
+
+        // 🚀 2. CREATE (POST NEW TASK)
+        async function createTask(event) {
+            event.preventDefault();
+            const title = document.getElementById('taskTitle').value;
+            const description = document.getElementById('taskDesc').value;
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCsrfToken()
+                    },
+                    body: JSON.stringify({ title, description })
+                });
+
+                if (response.ok) {
+                    document.getElementById('taskTitle').value = '';
+                    document.getElementById('taskDesc').value = '';
+                    loadTasks(); 
+                } else {
+                    const errorDetails = await response.json();
+                    alert(`Django Rejected: ${JSON.stringify(errorDetails)}`);
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        // 🔄 3. UPDATE (POST /tasks/[id]/toggle/)
+        async function toggleTask(id) {
+            try {
+                const response = await fetch(`${API_URL}${id}/toggle/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCsrfToken()
+                    }
+                });
+
+                if (response.ok) {
+                    loadTasks(); // Instantly refresh layout state
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        // 🗑️ 4. DELETE (DELETE /tasks/[id]/)
+        async function deleteTask(id) {
+            // Optional confirmation safety prompt box
+            if (!confirm("Are you sure you want to delete this task from Django?")) return;
+
+            try {
+                // We send a DELETE request directly to the specific item row URL endpoint
+                const response = await fetch(`${API_URL}${id}/`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCsrfToken() // Security validation token is required for deletions!
+                    }
+                });
+
+                if (response.ok) {
+                    loadTasks(); // Wipe it from view layout cleanly on success
+                } else {
+                    alert(`Failed to delete task. Status: ${response.status}`);
+                }
+            } catch (err) {
+                console.error("Delete connection failed:", err);
+            }
+        }
+
+        // Initial launch load
+        loadTasks();
+    </script>
+</body>
+</html>

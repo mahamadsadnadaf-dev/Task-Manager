@@ -1,0 +1,46 @@
+# === Python Cache & Compiled Files ===
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+htmlcov/
+.tox/
+.coverage
+.cache
+nosetests.xml
+coverage.xml
+*.mo
+*.pot
+
+# === Virtual Environments ===
+.venv/
+venv/
+ENV/
+env/
+Active_Resources/
+
+# === Local Databases & Secrets ===
+db.sqlite3
+db.sqlite3-journal
+.env
+.secret
+credentials.json
+
+# === Operating System Files ===
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# === IDEs and Editors ===
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
